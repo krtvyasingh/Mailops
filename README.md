@@ -12,7 +12,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 <p align="center">
-  <strong>100% Free Forever • Zero Third-Party Runtime Dependencies • Native Web Crypto Security • 100+ Enterprise Features</strong>
+  <strong>100% Free Forever • Zero Third-Party Runtime Dependencies • Native Web Crypto Security • 125+ Features • 189 Atomic Commits</strong>
 </p>
 
 [Quick Start](#-quick-start) • [Architecture](#-architecture) • [Feature Matrix](#-feature-matrix) • [Self-Hosting (Docker)](#-standalone-docker-deployment) • [Gmail & Client Sync](#-email-client-integration) • [License](#-license)
