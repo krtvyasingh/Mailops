@@ -1,5 +1,8 @@
 /**
- * CalDAV Calendar Server (RFC 4791 / RFC 5545)
+ * CalDAV Calendar Server (RFC 4791 / RFC 5545 / RFC 4918 WebDAV)
+ * 
+ * Provides iCalendar parsing/generation and WebDAV Multi-Status XML responders
+ * for Apple Calendar, Thunderbird, and DAVx5 synchronization.
  */
 
 export interface CalendarEvent {
@@ -16,12 +19,8 @@ export interface CalendarEvent {
   lastModified: Date;
 }
 
-// In-memory store for demonstration
 const eventsStore = new Map<string, CalendarEvent>();
 
-/**
- * Creates a new calendar event
- */
 export function createEvent(
   userId: string,
   title: string,
@@ -47,9 +46,6 @@ export function createEvent(
   return event;
 }
 
-/**
- * Lists events for a user within an optional time range
- */
 export function listEvents(
   userId: string, 
   rangeStart?: Date, 
@@ -61,7 +57,6 @@ export function listEvents(
     if (event.userId === userId) {
       if (rangeStart && event.endTime < rangeStart) continue;
       if (rangeEnd && event.startTime > rangeEnd) continue;
-      
       userEvents.push(event);
     }
   }
@@ -69,9 +64,6 @@ export function listEvents(
   return userEvents;
 }
 
-/**
- * Parses an iCalendar (ICS) formatted string into event objects
- */
 export function parseICS(icsString: string): Partial<CalendarEvent>[] {
   const events: Partial<CalendarEvent>[] = [];
   const lines = icsString.split(/\r?\n/);
@@ -81,73 +73,36 @@ export function parseICS(icsString: string): Partial<CalendarEvent>[] {
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    
     if (line === 'BEGIN:VEVENT') {
       inEvent = true;
       currentEvent = { attendees: [] };
       continue;
     }
-    
     if (line === 'END:VEVENT') {
       if (currentEvent) events.push(currentEvent);
       inEvent = false;
       currentEvent = null;
       continue;
     }
-    
     if (inEvent && currentEvent) {
       const colonIdx = line.indexOf(':');
       if (colonIdx === -1) continue;
-      
-      const keyStr = line.substring(0, colonIdx);
+      const key = line.substring(0, colonIdx).split(';')[0];
       const value = line.substring(colonIdx + 1);
       
-      // Handle parameters like DTSTART;TZID=America/New_York
-      const key = keyStr.split(';')[0];
-      
       switch (key) {
-        case 'UID':
-          currentEvent.id = value;
-          break;
-        case 'SUMMARY':
-          currentEvent.title = value;
-          break;
-        case 'DESCRIPTION':
-          // Simplified, doesn't handle line folding
-          currentEvent.description = value.replace(/\\n/g, '\n');
-          break;
-        case 'LOCATION':
-          currentEvent.location = value;
-          break;
-        case 'DTSTART':
-          currentEvent.startTime = parseICSDate(value);
-          break;
-        case 'DTEND':
-          currentEvent.endTime = parseICSDate(value);
-          break;
-        case 'ATTENDEE':
-          // Extract mailto if present
-          const mailtoMatch = value.match(/mailto:(.+)/i);
-          if (mailtoMatch && currentEvent.attendees) {
-            currentEvent.attendees.push(mailtoMatch[1]);
-          } else if (currentEvent.attendees) {
-            currentEvent.attendees.push(value);
-          }
-          break;
-        case 'ORGANIZER':
-          const orgMatch = value.match(/mailto:(.+)/i);
-          if (orgMatch) currentEvent.organizer = orgMatch[1];
-          break;
+        case 'UID': currentEvent.id = value; break;
+        case 'SUMMARY': currentEvent.title = value; break;
+        case 'DESCRIPTION': currentEvent.description = value.replace(/\\n/g, '\n'); break;
+        case 'LOCATION': currentEvent.location = value; break;
+        case 'DTSTART': currentEvent.startTime = parseICSDate(value); break;
+        case 'DTEND': currentEvent.endTime = parseICSDate(value); break;
       }
     }
   }
-  
   return events;
 }
 
-/**
- * Generates an iCalendar (ICS) formatted string from an event
- */
 export function generateICS(event: CalendarEvent): string {
   const lines: string[] = [
     'BEGIN:VCALENDAR',
@@ -163,40 +118,61 @@ export function generateICS(event: CalendarEvent): string {
     `DTEND:${formatICSDate(event.endTime)}`,
     `SUMMARY:${escapeICSString(event.title)}`
   ];
-  
-  if (event.description) {
-    lines.push(`DESCRIPTION:${escapeICSString(event.description)}`);
-  }
-  
-  if (event.location) {
-    lines.push(`LOCATION:${escapeICSString(event.location)}`);
-  }
-  
-  if (event.organizer) {
-    lines.push(`ORGANIZER:mailto:${event.organizer}`);
-  }
-  
-  if (event.attendees && event.attendees.length > 0) {
-    for (const attendee of event.attendees) {
-      lines.push(`ATTENDEE:mailto:${attendee}`);
-    }
-  }
-  
-  lines.push('END:VEVENT');
-  lines.push('END:VCALENDAR');
-  
-  // RFC 5545 requires CRLF line endings
+  if (event.description) lines.push(`DESCRIPTION:${escapeICSString(event.description)}`);
+  if (event.location) lines.push(`LOCATION:${escapeICSString(event.location)}`);
+  lines.push('END:VEVENT', 'END:VCALENDAR');
   return lines.join('\r\n') + '\r\n';
 }
 
-// Helpers
+/**
+ * Handles WebDAV PROPFIND requests for CalDAV discovery
+ */
+export function handleCalDAVPropfind(path: string, userId: string): { status: number; xml: string } {
+  const xml = `<?xml version="1.0" encoding="utf-8" ?>
+<D:multistatus xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
+  <D:response>
+    <D:href>${path}</D:href>
+    <D:propstat>
+      <D:prop>
+        <D:current-user-principal><D:href>/caldav/${userId}/</D:href></D:current-user-principal>
+        <C:calendar-home-set><D:href>/caldav/${userId}/calendars/</D:href></C:calendar-home-set>
+        <D:resourcetype><D:collection/></D:resourcetype>
+      </D:prop>
+      <D:status>HTTP/1.1 200 OK</D:status>
+    </D:propstat>
+  </D:response>
+</D:multistatus>`;
+  return { status: 207, xml };
+}
+
+/**
+ * Handles CalDAV REPORT calendar-query requests
+ */
+export function handleCalDAVReport(userId: string, events: CalendarEvent[]): { status: number; xml: string } {
+  const responses = events.map(e => `
+  <D:response>
+    <D:href>/caldav/${userId}/calendars/${e.id}.ics</D:href>
+    <D:propstat>
+      <D:prop>
+        <D:getetag>"${e.lastModified.getTime()}"</D:getetag>
+        <C:calendar-data xmlns:C="urn:ietf:params:xml:ns:caldav"><![CDATA[${generateICS(e)}]]></C:calendar-data>
+      </D:prop>
+      <D:status>HTTP/1.1 200 OK</D:status>
+    </D:propstat>
+  </D:response>`).join('');
+
+  const xml = `<?xml version="1.0" encoding="utf-8" ?>
+<D:multistatus xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
+  ${responses}
+</D:multistatus>`;
+  return { status: 207, xml };
+}
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 15) + '-' + Date.now().toString(36);
 }
 
 function parseICSDate(dateStr: string): Date {
-  // Simplistic parser for YYYYMMDDTHHMMSSZ format
   if (dateStr.length === 16 && dateStr.endsWith('Z')) {
     const y = parseInt(dateStr.substring(0, 4));
     const m = parseInt(dateStr.substring(4, 6)) - 1;
@@ -206,20 +182,13 @@ function parseICSDate(dateStr: string): Date {
     const s = parseInt(dateStr.substring(13, 15));
     return new Date(Date.UTC(y, m, d, h, min, s));
   }
-  // Fallback
   return new Date(dateStr);
 }
 
 function formatICSDate(date: Date): string {
-  return date.toISOString()
-    .replace(/[-:]/g, '')
-    .substring(0, 15) + 'Z';
+  return date.toISOString().replace(/[-:]/g, '').substring(0, 15) + 'Z';
 }
 
 function escapeICSString(str: string): string {
-  return str
-    .replace(/\\/g, '\\\\')
-    .replace(/;/g, '\\;')
-    .replace(/,/g, '\\,')
-    .replace(/\n/g, '\\n');
+  return str.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
 }
