@@ -1,5 +1,4 @@
 import { nanoid } from 'nanoid';
-import { D1Database } from '@cloudflare/workers-types';
 
 export interface Contact {
   id: string;
@@ -18,63 +17,63 @@ export class AddressBookModule {
     const id = nanoid();
     const now = Date.now();
     await this.db.prepare(
-      \`INSERT INTO contacts (id, email, name, company, notes, interaction_count, last_contact_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)\`
+      `INSERT INTO contacts (id, email, name, company, notes, interaction_count, last_contact_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     ).bind(id, email, name || null, company || null, notes || null, 1, now).run();
 
     return { id, email, name, company, notes, interactionCount: 1, lastContactAt: now };
   }
 
-  async searchContacts(query: string, limit: number = 10): Promise<Contact[]> {
-    const likeQuery = \`%\${query}%\`;
+  async searchContacts(query: string, limit = 10): Promise<Contact[]> {
+    const likeQuery = `%${query}%`;
     const { results } = await this.db.prepare(
-      \`SELECT * FROM contacts 
+      `SELECT * FROM contacts 
        WHERE email LIKE ? OR name LIKE ? OR company LIKE ?
        ORDER BY (interaction_count * last_contact_at) DESC
-       LIMIT ?\`
+       LIMIT ?`
     ).bind(likeQuery, likeQuery, likeQuery, limit).all();
     return this.mapRows(results);
   }
 
   async autoLearnContact(email: string, name?: string): Promise<void> {
     await this.db.prepare(
-      \`INSERT INTO contacts (id, email, name, interaction_count, last_contact_at)
+      `INSERT INTO contacts (id, email, name, interaction_count, last_contact_at)
        VALUES (?, ?, ?, 1, ?)
        ON CONFLICT(email) DO UPDATE SET 
          interaction_count = interaction_count + 1,
          last_contact_at = ?,
-         name = COALESCE(excluded.name, name)\`
+         name = COALESCE(excluded.name, name)`
     ).bind(nanoid(), email, name || null, Date.now(), Date.now()).run();
   }
 
   async getContactSuggestions(partialInput: string): Promise<Contact[]> {
     // Prefix match
-    const likeQuery = \`\${partialInput}%\`;
+    const likeQuery = `${partialInput}%`;
     const { results } = await this.db.prepare(
-      \`SELECT * FROM contacts 
+      `SELECT * FROM contacts 
        WHERE email LIKE ? OR name LIKE ?
        ORDER BY (interaction_count * last_contact_at) DESC
-       LIMIT 5\`
+       LIMIT 5`
     ).bind(likeQuery, likeQuery).all();
     return this.mapRows(results);
   }
 
   async getContactProfile(email: string): Promise<Contact | null> {
-    const row = await this.db.prepare(\`SELECT * FROM contacts WHERE email = ?\`).bind(email).first();
+    const row = await this.db.prepare(`SELECT * FROM contacts WHERE email = ?`).bind(email).first();
     return row ? this.mapRow(row) : null;
   }
 
   async mergeContacts(primaryId: string, duplicateId: string): Promise<boolean> {
     // Merge stats
     await this.db.prepare(
-      \`UPDATE contacts 
+      `UPDATE contacts 
        SET interaction_count = interaction_count + (SELECT interaction_count FROM contacts WHERE id = ?),
            last_contact_at = MAX(last_contact_at, (SELECT last_contact_at FROM contacts WHERE id = ?))
-       WHERE id = ?\`
+       WHERE id = ?`
     ).bind(duplicateId, duplicateId, primaryId).run();
 
     // Delete duplicate
-    const res = await this.db.prepare(\`DELETE FROM contacts WHERE id = ?\`).bind(duplicateId).run();
+    const res = await this.db.prepare(`DELETE FROM contacts WHERE id = ?`).bind(duplicateId).run();
     return res.success;
   }
 

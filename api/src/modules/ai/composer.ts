@@ -1,5 +1,3 @@
-import { Ai } from '@cloudflare/ai';
-
 export interface ComposerOptions {
   tone?: 'formal' | 'casual' | 'friendly' | 'professional';
   context?: string;
@@ -17,15 +15,15 @@ export class AiComposerModule {
     this.ai = envAi; // The Workers AI binding
   }
 
-  private getPromptForTone(tone: string = 'professional', prompt: string): string {
-    return \`Write a \${tone} email about the following: \${prompt}\`;
+  private getPromptForTone(tone = 'professional', prompt: string): string {
+    return `Write a ${tone} email about the following: ${prompt}`;
   }
 
   async generateDraft(prompt: string, options?: ComposerOptions): Promise<string> {
     if (!this.ai) return this.fallback();
     
     const finalPrompt = this.getPromptForTone(options?.tone, prompt) + 
-      (options?.context ? \`\\nContext: \${options.context}\` : '');
+      (options?.context ? `\nContext: ${options.context}` : '');
 
     try {
       const response = await this.ai.run('@cf/meta/llama-2-7b-chat-int8', {
@@ -40,7 +38,7 @@ export class AiComposerModule {
   async expandDraft(shortText: string): Promise<string> {
     if (!this.ai) return shortText;
     
-    const prompt = \`Expand the following bullet points into a full, professional email:\\n\${shortText}\`;
+    const prompt = `Expand the following bullet points into a full, professional email:\n${shortText}`;
     try {
       const response = await this.ai.run('@cf/meta/llama-2-7b-chat-int8', {
         messages: [{ role: 'user', content: prompt }]
@@ -54,7 +52,7 @@ export class AiComposerModule {
   async replyDraft(originalEmail: string, instruction: string): Promise<string> {
     if (!this.ai) return this.fallback();
 
-    const prompt = \`Draft a reply to this email: \\n"""\${originalEmail}"""\\nInstructions: \${instruction}\`;
+    const prompt = `Draft a reply to this email:\n"""${originalEmail}"""\nInstructions: ${instruction}`;
     try {
       const response = await this.ai.run('@cf/meta/llama-2-7b-chat-int8', {
         messages: [{ role: 'user', content: prompt }]

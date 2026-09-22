@@ -26,8 +26,11 @@ export function parseDMARCXml(xmlString: string): DMARCAggregateReport {
   const orgMatch = xmlString.match(/<org_name>(.*?)<\/org_name>/i);
   const orgName = orgMatch ? orgMatch[1] : 'Unknown Provider';
 
-  const countMatches = xmlString.match(/<count>(\d+)<\/count>/gi) || [];
-  const totalEmails = countMatches.reduce((sum, c) => sum + parseInt(c.replace(/\D/g, ''), 10), 0);
+  const countMatches: string[] = xmlString.match(/<count>(\d+)<\/count>/gi) || [];
+  let totalEmails = 0;
+  for (const match of countMatches) {
+    totalEmails += parseInt(match.replace(/\D/g, ''), 10) || 0;
+  }
 
   return {
     orgName,

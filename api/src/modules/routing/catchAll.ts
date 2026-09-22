@@ -1,4 +1,3 @@
-import { D1Database } from '@cloudflare/workers-types';
 import { nanoid } from 'nanoid';
 
 export interface CatchAllConfig {
@@ -12,9 +11,9 @@ export class CatchAllModule {
 
   async configureCatchAll(domainId: string, targetFolder: string, isEnabled: boolean): Promise<CatchAllConfig> {
     await this.db.prepare(
-      \`INSERT INTO catchall_config (domain_id, target_folder, is_enabled)
+      `INSERT INTO catchall_config (domain_id, target_folder, is_enabled)
        VALUES (?, ?, ?)
-       ON CONFLICT(domain_id) DO UPDATE SET target_folder=excluded.target_folder, is_enabled=excluded.is_enabled\`
+       ON CONFLICT(domain_id) DO UPDATE SET target_folder=excluded.target_folder, is_enabled=excluded.is_enabled`
     ).bind(domainId, targetFolder, isEnabled ? 1 : 0).run();
 
     return { domainId, targetFolder, isEnabled };
@@ -22,8 +21,8 @@ export class CatchAllModule {
 
   async getCatchAllConfig(domainId: string): Promise<CatchAllConfig | null> {
     const row = await this.db.prepare(
-      \`SELECT domain_id as domainId, target_folder as targetFolder, is_enabled as isEnabled
-       FROM catchall_config WHERE domain_id = ?\`
+      `SELECT domain_id as domainId, target_folder as targetFolder, is_enabled as isEnabled
+       FROM catchall_config WHERE domain_id = ?`
     ).bind(domainId).first<CatchAllConfig>();
 
     if (!row) return null;
@@ -57,7 +56,7 @@ export class CatchAllModule {
   private async logCatchAllCapture(domainId: string, toAddress: string) {
     const id = nanoid();
     await this.db.prepare(
-      \`INSERT INTO catchall_logs (id, domain_id, captured_address, captured_at) VALUES (?, ?, ?, ?)\`
+      `INSERT INTO catchall_logs (id, domain_id, captured_address, captured_at) VALUES (?, ?, ?, ?)`
     ).bind(id, domainId, toAddress, Date.now()).run();
   }
 }

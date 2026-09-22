@@ -1,5 +1,4 @@
 import { nanoid } from 'nanoid';
-import { D1Database } from '@cloudflare/workers-types';
 
 export interface ForwardingRule {
   id: string;
@@ -24,8 +23,8 @@ export class ForwardingModule {
     }
 
     await this.db.prepare(
-      \`INSERT INTO forwarding_rules (id, domain_id, conditions, target_email, keep_copy, is_active)
-       VALUES (?, ?, ?, ?, ?, ?)\`
+      `INSERT INTO forwarding_rules (id, domain_id, conditions, target_email, keep_copy, is_active)
+       VALUES (?, ?, ?, ?, ?, ?)`
     ).bind(id, domainId, JSON.stringify(conditions), JSON.stringify(targetEmail), keepCopy ? 1 : 0, 1).run();
     
     return { id, domainId, conditions, targetEmail, keepCopy, isActive: true };
@@ -33,8 +32,8 @@ export class ForwardingModule {
 
   async listForwardingRules(domainId: string): Promise<ForwardingRule[]> {
     const { results } = await this.db.prepare(
-      \`SELECT id, domain_id as domainId, conditions, target_email as targetEmail, keep_copy as keepCopy, is_active as isActive
-       FROM forwarding_rules WHERE domain_id = ?\`
+      `SELECT id, domain_id as domainId, conditions, target_email as targetEmail, keep_copy as keepCopy, is_active as isActive
+       FROM forwarding_rules WHERE domain_id = ?`
     ).bind(domainId).all();
 
     return results.map((r: any) => ({
@@ -47,13 +46,13 @@ export class ForwardingModule {
   }
 
   async toggleRule(ruleId: string, isActive: boolean): Promise<boolean> {
-    const result = await this.db.prepare(\`UPDATE forwarding_rules SET is_active = ? WHERE id = ?\`)
+    const result = await this.db.prepare(`UPDATE forwarding_rules SET is_active = ? WHERE id = ?`)
       .bind(isActive ? 1 : 0, ruleId).run();
     return result.success;
   }
 
   async deleteRule(ruleId: string): Promise<boolean> {
-    const result = await this.db.prepare(\`DELETE FROM forwarding_rules WHERE id = ?\`).bind(ruleId).run();
+    const result = await this.db.prepare(`DELETE FROM forwarding_rules WHERE id = ?`).bind(ruleId).run();
     return result.success;
   }
 
@@ -61,7 +60,7 @@ export class ForwardingModule {
     const rules = await this.listForwardingRules(domainId);
     const activeRules = rules.filter(r => r.isActive);
     
-    let targets = new Set<string>();
+    const targets = new Set<string>();
     let keepCopy = true; // default
     
     for (const rule of activeRules) {
@@ -71,7 +70,7 @@ export class ForwardingModule {
       if (rule.conditions.recipient && email.to === rule.conditions.recipient) matches = true;
       
       if (matches) {
-        rule.targetEmail.forEach(t => targets.add(t));
+        rule.targetEmail.forEach((t: string) => targets.add(t));
         if (!rule.keepCopy) keepCopy = false; // if any rule says don't keep, don't keep
       }
     }

@@ -30,7 +30,7 @@ export class PluginManager {
 
   registerPlugin(manifest: PluginManifest): void {
     if (!this.validatePluginManifest(manifest)) {
-      throw new Error(`Invalid plugin manifest for ${manifest.id || 'unknown'}`);
+      throw new Error(`Invalid plugin manifest for ${(manifest as any)?.id || 'unknown'}`);
     }
     
     this.plugins.set(manifest.id, {
@@ -50,14 +50,12 @@ export class PluginManager {
     for (const plugin of activePlugins) {
       try {
         const handler = plugin.hooks[hook]!;
-        // Sandboxed execution via try/catch
         const result = await Promise.resolve(handler(currentContext));
         if (result) {
           currentContext = { ...currentContext, ...result };
         }
       } catch (err) {
         console.error(`Plugin ${plugin.id} crashed on hook ${hook}:`, err);
-        // Continue execution despite plugin failure
       }
     }
 
@@ -79,7 +77,7 @@ export class PluginManager {
   }
 
   validatePluginManifest(manifest: any): manifest is PluginManifest {
-    return (
+    return Boolean(
       manifest &&
       typeof manifest.id === 'string' &&
       typeof manifest.name === 'string' &&
@@ -90,47 +88,3 @@ export class PluginManager {
 }
 
 export const pluginSystem = new PluginManager();
-
-/* Example Plugins
-
-const AutoTranslatePlugin: PluginManifest = {
-  id: 'core.autotranslate',
-  name: 'Auto Translate',
-  version: '1.0.0',
-  description: 'Automatically translates incoming emails',
-  author: 'Mailops Team',
-  priority: 90,
-  hooks: {
-    [PluginHook.AFTER_RECEIVE]: async (context) => {
-      // call translation API
-      return { translatedBody: '...' };
-    }
-  }
-};
-
-const CRMSyncPlugin: PluginManifest = {
-  id: 'core.crmsync',
-  name: 'CRM Sync',
-  version: '1.0.0',
-  description: 'Syncs contacts to CRM',
-  author: 'Mailops Team',
-  hooks: {
-    [PluginHook.AFTER_RECEIVE]: async (context) => {
-      // sync to CRM
-    }
-  }
-};
-
-const SlackNotifierPlugin: PluginManifest = {
-  id: 'core.slacknotify',
-  name: 'Slack Notifier',
-  version: '1.0.0',
-  description: 'Sends slack message on urgent emails',
-  author: 'Mailops Team',
-  hooks: {
-    [PluginHook.AFTER_RECEIVE]: async (context) => {
-      // check if urgent and send slack msg
-    }
-  }
-};
-*/

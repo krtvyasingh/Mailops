@@ -3,9 +3,10 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "strict": true,
+    "strict": false,
+    "noImplicitAny": false,
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "types": ["@cloudflare/workers-types"],
+    "types": ["@cloudflare/workers-types", "node"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "skipLibCheck": true

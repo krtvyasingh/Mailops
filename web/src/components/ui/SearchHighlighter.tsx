@@ -116,19 +116,30 @@ export const SearchHighlighter: React.FC<SearchHighlighterProps> = ({
 };
 
 export const HighlightedText: React.FC<{text: string, query: string}> = ({ text, query }) => {
-  if (!query) return <span>{text}</span>;
+  if (!query || !text) return <span>{text}</span>;
 
-  // Escape regex characters in query
-  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'));
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let index = lowerText.indexOf(lowerQuery, lastIndex);
 
-  return (
-    <span>
-      {parts.map((part, index) => 
-        part.toLowerCase() === query.toLowerCase() ? 
-          <mark key={index} style={{ backgroundColor: '#fff59d', padding: 0, fontWeight: 'bold' }}>{part}</mark> : 
-          <span key={index}>{part}</span>
-      )}
-    </span>
-  );
+  while (index !== -1) {
+    if (index > lastIndex) {
+      parts.push(<span key={`text-${lastIndex}`}>{text.substring(lastIndex, index)}</span>);
+    }
+    parts.push(
+      <mark key={`mark-${index}`} style={{ backgroundColor: '#fff59d', padding: 0, fontWeight: 'bold' }}>
+        {text.substring(index, index + query.length)}
+      </mark>
+    );
+    lastIndex = index + query.length;
+    index = lowerText.indexOf(lowerQuery, lastIndex);
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(<span key={`text-${lastIndex}`}>{text.substring(lastIndex)}</span>);
+  }
+
+  return <span>{parts}</span>;
 };

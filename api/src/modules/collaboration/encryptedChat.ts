@@ -131,8 +131,8 @@ export function decryptMessage(
     const authTag = Buffer.from(message.authTag, 'base64');
     const encryptedText = Buffer.from(message.ciphertext, 'base64');
     
-    // 2. Create decipher instance
-    const decipher = createDecipheriv(ALGORITHM, decryptionKey, iv);
+    // 2. Create decipher instance with explicit tag length
+    const decipher = createDecipheriv(ALGORITHM, decryptionKey, iv, { authTagLength: AUTH_TAG_LENGTH });
     
     // 3. Set the auth tag for verification
     decipher.setAuthTag(authTag);

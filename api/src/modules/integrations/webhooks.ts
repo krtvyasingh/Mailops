@@ -1,5 +1,4 @@
 import { nanoid } from 'nanoid';
-import { D1Database } from '@cloudflare/workers-types';
 
 export interface Webhook {
   id: string;
@@ -17,8 +16,8 @@ export class WebhookModule {
     const eventsStr = JSON.stringify(events);
     
     await this.db.prepare(
-      \`INSERT INTO webhooks (id, domain_id, url, events, secret, created_at)
-       VALUES (?, ?, ?, ?, ?, ?)\`
+      `INSERT INTO webhooks (id, domain_id, url, events, secret, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`
     ).bind(id, domainId, url, eventsStr, secret || null, Date.now()).run();
     
     return { id, domainId, url, events, secret };
@@ -26,7 +25,7 @@ export class WebhookModule {
 
   async listWebhooks(domainId: string): Promise<Webhook[]> {
     const { results } = await this.db.prepare(
-      \`SELECT id, domain_id as domainId, url, events, secret FROM webhooks WHERE domain_id = ?\`
+      `SELECT id, domain_id as domainId, url, events, secret FROM webhooks WHERE domain_id = ?`
     ).bind(domainId).all();
     
     return results.map((r: any) => ({
@@ -36,7 +35,7 @@ export class WebhookModule {
   }
 
   async deleteWebhook(id: string): Promise<boolean> {
-    const result = await this.db.prepare(\`DELETE FROM webhooks WHERE id = ?\`).bind(id).run();
+    const result = await this.db.prepare(`DELETE FROM webhooks WHERE id = ?`).bind(id).run();
     return result.success;
   }
 

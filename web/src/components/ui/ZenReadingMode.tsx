@@ -11,7 +11,21 @@ export interface ZenReadingModeProps {
   onClose: () => void;
 }
 
+function sanitizeHtml(html: string): string {
+  // Strip dangerous scripts, iframes, and inline event handlers
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+    .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '')
+    .replace(/on\w+="[^"]*"/gi, '')
+    .replace(/on\w+='[^']*'/gi, '')
+    .replace(/javascript:/gi, '');
+}
+
 export const ZenReadingMode: React.FC<ZenReadingModeProps> = ({ email, onClose }) => {
+  const sanitizedHtml = email.htmlBody ? sanitizeHtml(email.htmlBody) : '';
+
   return (
     <div className="fixed inset-0 z-50 bg-white dark:bg-zinc-950 flex flex-col items-center justify-start overflow-y-auto px-6 py-12">
       <div className="w-full max-w-3xl flex justify-between items-center mb-8 pb-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -31,8 +45,8 @@ export const ZenReadingMode: React.FC<ZenReadingModeProps> = ({ email, onClose }
           <span>{email.date}</span>
         </div>
 
-        {email.htmlBody ? (
-          <div dangerouslySetInnerHTML={{ __html: email.htmlBody }} />
+        {sanitizedHtml ? (
+          <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
         ) : (
           <p className="whitespace-pre-line text-zinc-800 dark:text-zinc-200 leading-relaxed">{email.textBody}</p>
         )}

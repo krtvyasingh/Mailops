@@ -1,0 +1,47 @@
+{
+  "appId": "dev.mailops.desktop",
+  "productName": "Mailops",
+  "directories": {
+    "output": "dist-desktop"
+  },
+  "files": [
+    "web/dist/**/*",
+    "desktop/main.js"
+  ],
+  "mac": {
+    "category": "public.app-category.productivity",
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "zip",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "darkModeSupport": true,
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "entitlements": "desktop/entitlements.mac.plist",
+    "entitlementsInherit": "desktop/entitlements.mac.plist"
+  },
+  "dmg": {
+    "contents": [
+      {
+        "x": 130,
+        "y": 220
+      },
+      {
+        "x": 410,
+        "y": 220,
+        "type": "link",
+        "path": "/Applications"
+      }
+    ],
+    "window": {
+      "width": 540,
+      "height": 380
+    }
+  }
+}
