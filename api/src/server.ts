@@ -19,6 +19,7 @@ import { productivityRouter } from './routes/productivity';
 import { collaborationRouter } from './routes/collaboration';
 import { securityRouter } from './routes/security';
 import { customizationRouter } from './routes/customization';
+import { accountsRouter } from './routes/accounts';
 import { MailopsTCPDaemon } from './server/tcpDaemon';
 
 const serverApp = new Hono();
@@ -40,6 +41,7 @@ serverApp.get('/api/health', (c) => {
 
 // Mount all core API and Autoconfig routers
 serverApp.route('/', autoconfigRouter);
+serverApp.route('/api/accounts', accountsRouter);
 serverApp.route('/api/dns', dnsRouter);
 serverApp.route('/api/send', sendRouter);
 serverApp.route('/api/ai', aiRouter);

@@ -48,7 +48,7 @@ import {
   applyPrivacyShield
 } from '../src/modules/security/privacyShield';
 
-describe('Thunderbird & K-9 Mail Architecture Suite', () => {
+describe('Mailops Protocol Standards & Sync Architecture Suite', () => {
 
   describe('1. Autocrypt Level 1 & Opportunistic OpenPGP Key Exchange', () => {
     const dummyKey = 'mQENBF4/e...dummyKeyData...';
