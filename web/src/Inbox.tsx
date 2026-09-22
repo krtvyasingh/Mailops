@@ -128,10 +128,10 @@ export default function Inbox() {
   );
 
   return (
-    <div className="flex flex-col h-full space-y-4">
+    <div className="flex flex-col h-full w-full min-h-0 space-y-3 overflow-hidden">
       
       {/* Top Toolbar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div className="shrink-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div className="relative flex-1 max-w-md w-full">
           <input
             type="text"
@@ -163,11 +163,11 @@ export default function Inbox() {
       </div>
 
       {/* Main Dual-Pane Inbox Container */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 min-h-[480px]">
+      <div className="flex-1 w-full min-h-0 grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 overflow-hidden">
         
         {/* Left Column: Email Thread List */}
-        <div className="md:col-span-5 flex flex-col bg-white/40 dark:bg-zinc-900/40 backdrop-blur-xl border border-white/50 dark:border-zinc-800/60 rounded-2xl overflow-hidden shadow-sm">
-          <div className="p-3 border-b border-zinc-200/40 dark:border-zinc-800/40 flex justify-between items-center text-xs font-semibold text-zinc-500">
+        <div className="md:col-span-5 lg:col-span-4 flex flex-col h-full min-h-0 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-xl border border-white/50 dark:border-zinc-800/60 rounded-2xl overflow-hidden shadow-sm">
+          <div className="p-3 shrink-0 border-b border-zinc-200/40 dark:border-zinc-800/40 flex justify-between items-center text-xs font-semibold text-zinc-500">
             <span>Conversations</span>
             <span className="bg-zinc-200/60 dark:bg-zinc-800 px-2 py-0.5 rounded-full text-[10px] font-mono">{filteredEmails.length}</span>
           </div>
@@ -219,20 +219,20 @@ export default function Inbox() {
         </div>
 
         {/* Right Column: Reading & Interaction Pane */}
-        <div className="md:col-span-7 flex flex-col bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl border border-white/60 dark:border-zinc-800/60 rounded-2xl p-5 overflow-y-auto shadow-sm">
+        <div className="md:col-span-7 lg:col-span-8 flex flex-col h-full min-h-0 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl border border-white/60 dark:border-zinc-800/60 rounded-2xl p-4 sm:p-5 overflow-hidden shadow-sm">
           {selectedEmail ? (
-            <div className="flex flex-col h-full space-y-4">
+            <div className="flex flex-col h-full min-h-0 space-y-3">
               
               {/* Message Header */}
-              <div className="border-b border-zinc-200/50 dark:border-zinc-800/60 pb-4">
+              <div className="shrink-0 border-b border-zinc-200/50 dark:border-zinc-800/60 pb-3">
                 <div className="flex justify-between items-start gap-2 mb-2">
-                  <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+                  <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
                     {selectedEmail.subject || '(No Subject)'}
                   </h3>
                   <button
                     onClick={handleSummarize}
                     disabled={isSummarizing}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition-colors flex items-center space-x-1"
+                    className="shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition-colors flex items-center space-x-1"
                   >
                     <span>✨</span>
                     <span>{isSummarizing ? 'Analyzing...' : 'AI TL;DR'}</span>
@@ -248,7 +248,7 @@ export default function Inbox() {
 
               {/* AI Summary Card (if generated) */}
               {aiSummary && (
-                <div className="p-3 bg-gradient-to-r from-indigo-50/90 to-blue-50/90 dark:from-indigo-950/40 dark:to-blue-950/40 border border-indigo-100 dark:border-indigo-900/50 rounded-xl text-xs space-y-1">
+                <div className="shrink-0 p-3 bg-gradient-to-r from-indigo-50/90 to-blue-50/90 dark:from-indigo-950/40 dark:to-blue-950/40 border border-indigo-100 dark:border-indigo-900/50 rounded-xl text-xs space-y-1">
                   <div className="font-semibold text-indigo-700 dark:text-indigo-300 flex items-center space-x-1">
                     <span>✨ AI Executive Summary</span>
                   </div>
@@ -256,13 +256,13 @@ export default function Inbox() {
                 </div>
               )}
 
-              {/* Message Content */}
-              <div className="flex-1 text-xs sm:text-sm text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed py-2">
+              {/* Message Content (Scrollable) */}
+              <div className="flex-1 min-h-0 overflow-y-auto text-xs sm:text-sm text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed py-2 pr-1">
                 {selectedEmail.textBody || selectedEmail.htmlBody || '(Empty message body)'}
               </div>
 
               {/* Smart Quick Reply Chips */}
-              <div className="border-t border-zinc-200/50 dark:border-zinc-800/60 pt-3 flex flex-wrap gap-2 items-center">
+              <div className="shrink-0 border-t border-zinc-200/50 dark:border-zinc-800/60 pt-3 flex flex-wrap gap-2 items-center">
                 <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Quick Reply:</span>
                 {['"Looks great, thank you!"', '"I will review and follow up shortly."', '"Could you send more details?"'].map((chip, idx) => (
                   <button
