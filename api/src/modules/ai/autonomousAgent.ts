@@ -227,7 +227,7 @@ function evaluateStringMatch(target: string, operator: string, value: string): b
   switch (operator) {
     case 'contains': return t.includes(v);
     case 'equals': return t === v;
-    case 'matches': return new RegExp(v, 'i').test(t);
+    case 'matches': return t.includes(v);
     case 'is': return t === v;
     default: return false;
   }

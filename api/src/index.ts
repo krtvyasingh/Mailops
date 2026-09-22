@@ -7,6 +7,7 @@ import { productivityRouter } from './routes/productivity';
 import { collaborationRouter } from './routes/collaboration';
 import { securityRouter } from './routes/security';
 import { customizationRouter } from './routes/customization';
+import { autoconfigRouter } from './routes/autoconfig';
 import PostalMime from 'postal-mime';
 import { drizzle } from 'drizzle-orm/d1';
 import { emails } from './db/schema';
@@ -21,6 +22,7 @@ type Bindings = {
 export const app = new Hono<{ Bindings: Bindings }>();
 
 app.use('*', cors());
+app.route('/', autoconfigRouter);
 app.route('/api/dns', dnsRouter);
 app.route('/api/send', sendRouter);
 app.route('/api/ai', aiRouter);
@@ -28,6 +30,7 @@ app.route('/api/productivity', productivityRouter);
 app.route('/api/collaboration', collaborationRouter);
 app.route('/api/security', securityRouter);
 app.route('/api/customization', customizationRouter);
+
 
 app.get('/api/inbox', async (c) => {
   const db = drizzle(c.env.DB);

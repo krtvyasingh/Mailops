@@ -92,6 +92,7 @@ export const PrintExportModal: React.FC<PrintExportModalProps> = ({ email, onClo
           {/* Printable Body */}
           <div className="mailops-print-body prose dark:prose-invert max-w-none text-sm leading-relaxed mb-8">
             {email.htmlBody ? (
+              // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml
               <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.htmlBody) }} />
             ) : (
               <pre className="whitespace-pre-wrap font-sans">{email.textBody}</pre>

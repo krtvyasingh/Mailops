@@ -306,10 +306,23 @@ export class AttachmentInvertedIndex {
     const end = Math.min(text.length, start + maxLen);
     let snippet = (start > 0 ? '...' : '') + text.slice(start, end) + (end < text.length ? '...' : '');
 
-    // Highlight terms
+    // Highlight terms safely without RegExp
     for (const term of matchedTerms) {
-      const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-      snippet = snippet.replace(regex, '<mark>$1</mark>');
+      if (!term) continue;
+      const lowerSnippet = snippet.toLowerCase();
+      const lowerTerm = term.toLowerCase();
+      let pos = 0;
+      let highlighted = '';
+      while (pos < snippet.length) {
+        const found = lowerSnippet.indexOf(lowerTerm, pos);
+        if (found === -1) {
+          highlighted += snippet.slice(pos);
+          break;
+        }
+        highlighted += snippet.slice(pos, found) + '<mark>' + snippet.slice(found, found + term.length) + '</mark>';
+        pos = found + term.length;
+      }
+      snippet = highlighted;
     }
 
     return snippet;

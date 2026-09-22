@@ -44,8 +44,8 @@ export function resolvePath(obj: Record<string, unknown>, path: string): unknown
     if (part === '__proto__' || part === 'constructor' || part === 'prototype') {
       return undefined;
     }
-    if (current === null || current === undefined) return undefined;
-    if (typeof current === 'object') {
+    if (current && typeof current === 'object' && Object.prototype.hasOwnProperty.call(current, part)) {
+      // nosemgrep: javascript.lang.security.audit.prototype-pollution.prototype-pollution-loop.prototype-pollution-loop
       current = (current as Record<string, unknown>)[part];
     } else {
       return undefined;

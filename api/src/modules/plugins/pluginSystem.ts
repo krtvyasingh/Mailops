@@ -55,7 +55,7 @@ export class PluginManager {
           currentContext = { ...currentContext, ...result };
         }
       } catch (err) {
-        console.error(`Plugin ${plugin.id} crashed on hook ${hook}:`, err);
+        console.error('Plugin crashed on hook execution:', plugin.id, hook, err);
       }
     }
 

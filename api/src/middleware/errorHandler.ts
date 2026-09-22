@@ -5,7 +5,7 @@ export const errorHandler = () => {
     try {
       await next();
     } catch (err: any) {
-      console.error(`[Error] ${err.message}`, err.stack);
+      console.error('[Error]', err?.message || 'Unknown', err?.stack || '');
       
       const isProd = c.env?.ENVIRONMENT === 'production';
       const status = err.status || 500;

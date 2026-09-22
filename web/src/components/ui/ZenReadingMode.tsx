@@ -46,6 +46,7 @@ export const ZenReadingMode: React.FC<ZenReadingModeProps> = ({ email, onClose }
         </div>
 
         {sanitizedHtml ? (
+          // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml
           <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
         ) : (
           <p className="whitespace-pre-line text-zinc-800 dark:text-zinc-200 leading-relaxed">{email.textBody}</p>
