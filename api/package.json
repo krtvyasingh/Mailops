@@ -9,9 +9,13 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply DB",
     "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "start:standalone": "tsx src/server.ts",
     "test": "tsx --test test/*.test.ts test/**/*.test.ts"
   },
   "dependencies": {
+    "@hono/node-server": "^1.13.0",
     "drizzle-orm": "^0.30.0",
     "hono": "^4.0.0",
     "nanoid": "^6.0.1",

@@ -2,19 +2,40 @@ version: '3.8'
 
 services:
   mailops:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mailops:latest
     container_name: mailops-app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3000:3000"   # Glassmorphic Web Dashboard + REST API + AutoConfig
+      - "1025:1025"   # Standalone Raw TCP SMTP listener daemon
+      - "1143:1143"   # Standalone Raw TCP IMAP listener daemon
     environment:
       - PORT=3000
       - NODE_ENV=production
-      - DATABASE_PATH=/data/mailops.sqlite
+      - DATABASE_PATH=/app/data/mailops.sqlite
+      - ENABLE_TCP_DAEMON=true
+      - SMTP_PORT=1025
+      - IMAP_PORT=1143
       - RESEND_API_KEY=${RESEND_API_KEY:-}
+      - JWT_SECRET=${JWT_SECRET:-default-secret-change-in-prod}
     volumes:
-      - mailops_data:/data
+      - mailops_data:/app/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 volumes:
   mailops_data:
     driver: local
+    name: mailops_storage

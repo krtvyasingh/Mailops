@@ -1,0 +1,21 @@
+# Git & internal agent files
+.git
+.gitignore
+.agents
+.gemini
+*.log
+
+# Node dependencies and build artifacts
+node_modules
+api/node_modules
+web/node_modules
+api/dist
+web/dist
+dist
+
+# Temporary and local test files
+test-results
+coverage
+.DS_Store
+*.env.local
+*.tsbuildinfo
