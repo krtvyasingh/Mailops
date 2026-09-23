@@ -7,3 +7,8 @@ dist
 .agents/
 ORIGINAL_REQUEST.md
 TEST_READY.md
+android/app/build/
+android/app/src/main/assets/dist/
+*.keystore
+dist-apk/
+
