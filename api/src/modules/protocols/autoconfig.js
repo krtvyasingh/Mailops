@@ -39,6 +39,10 @@ export function generateThunderbirdAutoconfigXml(settings) {
 </clientConfig>`.trim();
 }
 /**
+ * Standard ISPDB XML format alias
+ */
+export const generateIspdbAutoconfigXml = generateThunderbirdAutoconfigXml;
+/**
  * Generates Microsoft Outlook Autodiscover POX XML
  * Spec: [MS-OXDISCO]
  */
